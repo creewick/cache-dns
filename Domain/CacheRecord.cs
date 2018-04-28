@@ -2,6 +2,7 @@
 
 namespace cache_dns.Domain
 {
+    [Serializable]
     public class CacheRecord
     {
         public readonly Record Record;

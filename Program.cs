@@ -4,7 +4,7 @@
     {
         public static void Main(string[] args)
         {
-            new DnsServer().Run();
+            new DnsServer(args[0]).Run();
         }
     }
 }

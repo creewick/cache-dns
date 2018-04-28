@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using cache_dns.Infrastructure;
+using Convert = cache_dns.Infrastructure.Convert;
 
 namespace cache_dns
 {
+    [Serializable]
     public class Question
     {
         public readonly string Name;
@@ -16,14 +18,6 @@ namespace cache_dns
             Name = name;
             Type = type;
             QueryClass = queryClass;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is Question other && 
-                   Name == other.Name && 
-                   Type.Code == other.Type.Code && 
-                   QueryClass.Code == other.QueryClass.Code;
         }
 
         public static Question Parse(byte[] message, int start, out int next)

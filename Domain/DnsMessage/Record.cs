@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using cache_dns.Infrastructure;
+using Convert = cache_dns.Infrastructure.Convert;
 
 namespace cache_dns
-{
+{    
+    [Serializable]
     public class Record
     {
         public readonly string Name;
@@ -27,9 +29,16 @@ namespace cache_dns
         public static Record Parse(byte[] message, int start, out int next)
         {
             var index = start;
+            var returnIndex = -1;
             var name = new StringBuilder();
             while (message[index] != 0)
             {
+                if (message[index] >> 6 == 0b0000_0011)
+                {
+                    if (returnIndex == -1) returnIndex = index;
+                    index = ((message[index] & 0b0011_1111) << 8) | message[index+1];
+                    continue;
+                }
                 name.Append(Convert.ToString(message
                     .Skip(index + 1)
                     .Take(message[index])));
@@ -37,6 +46,7 @@ namespace cache_dns
                 index += message[index] + 1;
             }
 
+            if (returnIndex != -1) index = returnIndex + 1;
             var type = QueryType.Parse(
                 Convert.ToShort(message
                 .Skip(index + 1)

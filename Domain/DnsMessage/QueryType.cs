@@ -1,9 +1,12 @@
-﻿namespace cache_dns
-{
+﻿using System;
+
+namespace cache_dns
+{    
+    [Serializable]
     public class QueryType
     {
         public readonly short Code;
-        private QueryType(short code) => Code = code;
+        public QueryType(short code) => Code = code;
 
         public static readonly QueryType A = new QueryType(1);
         public static readonly QueryType NS = new QueryType(2);

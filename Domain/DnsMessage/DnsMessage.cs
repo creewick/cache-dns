@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using cache_dns.Infrastructure;
+using Convert = cache_dns.Infrastructure.Convert;
 
 namespace cache_dns
 {
@@ -24,8 +25,8 @@ namespace cache_dns
         public readonly List<Record> Authorities = new List<Record>();
         public readonly List<Record> Additionals = new List<Record>();
 
-        public DnsMessage(short id, MessageType qr, OpCode opCode, bool authoritativeAnswer,
-            short questionCount, short answerCount, List<Question> questions, List<Record> answers)
+        public DnsMessage(short id, MessageType qr, OpCode opCode, bool authoritativeAnswer, 
+            List<Question> questions, List<Record> answers)
         {
             Id = id;
             QR = qr;
@@ -35,8 +36,8 @@ namespace cache_dns
             RecursionDesired = false;
             RecursionAvaliable = false;
             RCode = RCode.OK;
-            QuestionCount = questionCount;
-            AnswerCount = answerCount;
+            QuestionCount = (short)questions.Count;
+            AnswerCount = (short)answers.Count;
             AuthorityCount = 0;
             AdditionalCount = 0;
             Questions = questions;
