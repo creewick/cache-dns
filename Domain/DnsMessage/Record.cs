@@ -48,24 +48,16 @@ namespace cache_dns
 
             if (returnIndex != -1) index = returnIndex + 1;
             var type = QueryType.Parse(
-                Convert.ToShort(message
-                .Skip(index + 1)
-                .Take(2)));
+                Convert.ToShort(new[] {message[index+1], message[index+2]}));
             var queryClass = QueryClass.Parse(
-                Convert.ToShort(message
-                .Skip(index + 3)
-                .Take(2)));
-            var timeToLive = Convert.ToInt(message
-                .Skip(index + 5)
-                .Take(4));
-            var dataLength = Convert.ToShort(message
-                .Skip(index + 9)
-                .Take(2));
+                Convert.ToShort(new[] {message[index+3], message[index+4]}));
+            var timeToLive = Convert.ToInt(new[] {message[index+5], message[index+6], message[index+7], message[index+8]});
+            var dataLength = Convert.ToShort(new[] {message[index+9], message[index+10]});
             var data = message
                 .Skip(index + 11)
                 .Take(dataLength)
                 .ToArray();
-            next = index + 1 + 10 + dataLength;
+            next = index + 11 + dataLength;
             return new Record(name.ToString(), type, queryClass, timeToLive, dataLength, data);
         }
 

@@ -46,23 +46,23 @@ namespace cache_dns
         
         public DnsMessage(byte[] message)
         {
-            Id = Convert.ToShort(message.Take(2));
+            Id = Convert.ToShort(new[] {message[0], message[1]});
             
-            var thirdByte = message.Skip(2).First();
+            var thirdByte = message[2];
             QR = MessageType.Parse((thirdByte & 0b1000_0000) == 1);
             OpCode = OpCode.Parse((thirdByte & 0b0111_1000) >> 3);
             AuthoritativeAnswer = (thirdByte & 0b0000_0100) == 1;
             Truncated = (thirdByte & 0b0000_0010) == 1;
             RecursionDesired = (thirdByte & 0b0000_0001) == 1;
 
-            var fourthByte = message.Skip(3).First();
+            var fourthByte = message[3];
             RecursionAvaliable = (fourthByte & 0b1000_0000) == 1;
             RCode = RCode.Parse(fourthByte & 0b0000_1111);
 
-            QuestionCount = Convert.ToShort(message.Skip(4).Take(2));
-            AnswerCount = Convert.ToShort(message.Skip(6).Take(2));
-            AuthorityCount = Convert.ToShort(message.Skip(8).Take(2));
-            AdditionalCount = Convert.ToShort(message.Skip(10).Take(2));
+            QuestionCount = Convert.ToShort(new[] {message[4], message[5]});
+            AnswerCount = Convert.ToShort(new[] {message[6], message[7]});
+            AuthorityCount = Convert.ToShort(new[] {message[8], message[9]});
+            AdditionalCount = Convert.ToShort(new[] {message[10], message[11]});
 
             var next = 12;
             for (var i = 0; i < QuestionCount; i++)

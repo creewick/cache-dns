@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using cache_dns.Domain;
 using Newtonsoft.Json;
 
@@ -14,7 +15,6 @@ namespace cache_dns
         private readonly Socket listenSocket = new Socket(SocketType.Dgram, ProtocolType.Udp);
         private readonly Socket sendSocket = new Socket(SocketType.Dgram, ProtocolType.Udp);
         private readonly List<CacheRecord> cache = new List<CacheRecord>();
-        private readonly byte[] buffer = new byte[1024];
 
         public DnsServer(string address)
         {
@@ -29,9 +29,11 @@ namespace cache_dns
                     Console.WriteLine("Cache loaded");
                 }
             }
-            catch (Exception e)
+            catch (IOException e)
             {
                 Console.WriteLine(e.Message);
+                UpdateCache();
+                Console.WriteLine("New cache file created");
             }
         }
         
@@ -39,84 +41,86 @@ namespace cache_dns
         {
             try
             {
-                while (true)
+                while (!Console.KeyAvailable)
                 {
                     HandleRequest();
-                    var text = JsonConvert.SerializeObject(cache);
-                    using (var sr = new StreamWriter("cache.txt"))
-                        sr.Write(text);
+                    UpdateCache();
                 }
             }
             catch (SocketException e)
             {
-                Console.WriteLine("{0} Error code: {1}.", e.Message, e.ErrorCode);
+                Console.WriteLine($"{e.Message} Error code: {e.ErrorCode}.");
             }
             finally
             {
-                var text = JsonConvert.SerializeObject(cache);
-                using (var sr = new StreamWriter("cache.txt"))
-                    sr.Write(text);
+                UpdateCache();
                 listenSocket.Close();
-                Console.WriteLine("Disposed the port.");
+                sendSocket.Close();
+                Console.WriteLine("Disposed the port");
             }
         }
 
-        private void HandleRequest()
+        private void UpdateCache()
+        {
+            using (var sr = new StreamWriter("cache.txt"))
+                sr.Write(JsonConvert.SerializeObject(cache));
+        }
+        
+        private async void HandleRequest()
         {
             EndPoint endPoint = new IPEndPoint(IPAddress.Any, 53);
-            listenSocket.ReceiveFrom(buffer, ref endPoint);
-            Console.WriteLine("Received from {0}", ((IPEndPoint)endPoint).Address);
+            var buffer = new byte[1024];
+            await new Task(() => listenSocket.ReceiveFrom(buffer, ref endPoint));
+            Console.WriteLine($"Received from {0}", ((IPEndPoint)endPoint).Address);
 
-            var message = new DnsMessage(buffer);
+            var message = new DnsMessage(buffer.ToArray());
             var answers = new List<Record>();
             foreach (var question in message.Questions)
             {
                 Console.WriteLine($"{question.Name} requested");
-                if (TryGetKey(question, out var index))
+
+                var index = GetIndex(question);
+                if (index != -1)
                     answers.Add(cache[index].Record);
                 else
                 {
-                    sendSocket.Send(buffer);
+                    sendSocket.Send(buffer.ToArray());
                     Console.WriteLine("Request sent");
-                    sendSocket.Receive(buffer);
+                    
+                    await sendSocket.ReceiveAsync(new ArraySegment<byte>(buffer), SocketFlags.None);
                     Console.WriteLine("Answer received");
-                    SaveToCache(question, new DnsMessage(buffer));
-                    listenSocket.SendTo(buffer, endPoint);
+                    
+                    SaveToCache(question, new DnsMessage(buffer.ToArray()));
+                    
+                    listenSocket.SendTo(buffer.ToArray(), endPoint);
                     Console.WriteLine("Answer sent");
                     return;
                 }
             }
+
             listenSocket.SendTo(
-                new DnsMessage(message.Id, MessageType.Response, message.OpCode, false, 
-                               message.Questions, answers).GetBytes()
-                , endPoint);
+                new DnsMessage(message.Id, MessageType.Response, message.OpCode, false, message.Questions, answers)
+                    .GetBytes(), endPoint);
             Console.WriteLine("Answer sent from cache");
         }
         
-        private bool TryGetKey(Question question, out int index)
+        private int GetIndex(Question question)
         {
             for (var i = 0; i < cache.Count; i++)
-                if (question.Name == cache[i].Record.Name &&
-                    question.QueryClass.Code == cache[i].Record.QueryClass.Code &&
-                    question.Type.Code == cache[i].Record.Type.Code)
-                {
-                    index = i;
-                    return true;
-                }
-
-            index = -1;
-            return false;
+                if (question.Equals(cache[i]))
+                    return i;
+            return -1;
         }
         
         private void SaveToCache(Question question, DnsMessage message)
         {
-            foreach (var record in 
-                message.Answers
+            var records = message.Answers
                 .Concat(message.Additionals)
                 .Concat(message.Authorities)
                 .Concat(new List<Record>
-                    {new Record(question.Name, question.Type, question.QueryClass, 
-                        20000, 0, new byte[0])}))
+                    {new Record(question.Name, question.Type, question.QueryClass, 20000, 0, new byte[0])});
+            
+            foreach (var record in records)
             {
                 cache.Add(new CacheRecord(record));
                 Console.WriteLine(record.Name + " saved to cache");
