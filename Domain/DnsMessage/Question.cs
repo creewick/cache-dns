@@ -68,5 +68,10 @@ namespace cache_dns
             Name == record.Record.Name &&
             QueryClass.Code == record.Record.QueryClass.Code &&
             Type.Code == record.Record.Type.Code;
+        
+        public bool Equals(Record record) => 
+            Name == record.Name &&
+            QueryClass.Code == record.QueryClass.Code &&
+            Type.Code == record.Type.Code;
     }
 }
