@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace cache_dns
+namespace cache_dns.Domain.DnsMessage
 {
     [Serializable]
     public class QueryClass

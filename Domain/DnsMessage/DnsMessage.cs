@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Convert = cache_dns.Infrastructure.Convert;
+﻿using System.Collections.Generic;
+using cache_dns.Infrastructure;
 
-namespace cache_dns
+namespace cache_dns.Domain.DnsMessage
 {
     public class DnsMessage
-    {        
+    {
         public readonly short Id;
-        public readonly MessageType QR;
+        public readonly MessageType Qr;
         public readonly OpCode OpCode;
         public readonly bool AuthoritativeAnswer;
         public readonly bool Truncated;
@@ -25,17 +23,17 @@ namespace cache_dns
         public readonly List<Record> Authorities = new List<Record>();
         public readonly List<Record> Additionals = new List<Record>();
 
-        public DnsMessage(short id, MessageType qr, OpCode opCode, bool authoritativeAnswer, 
+        public DnsMessage(short id, MessageType qr, OpCode opCode, bool authoritativeAnswer, RCode rcode,
             List<Question> questions, List<Record> answers)
         {
             Id = id;
-            QR = qr;
+            Qr = qr;
             OpCode = opCode;
             AuthoritativeAnswer = authoritativeAnswer;
             Truncated = false;
-            RecursionDesired = false;
+            RecursionDesired = true;
             RecursionAvaliable = false;
-            RCode = RCode.OK;
+            RCode = rcode;
             QuestionCount = (short)questions.Count;
             AnswerCount = (short)answers.Count;
             AuthorityCount = 0;
@@ -49,7 +47,7 @@ namespace cache_dns
             Id = Convert.ToShort(new[] {message[0], message[1]});
             
             var thirdByte = message[2];
-            QR = MessageType.Parse((thirdByte & 0b1000_0000) == 1);
+            Qr = MessageType.Parse((thirdByte & 0b1000_0000) == 1);
             OpCode = OpCode.Parse((thirdByte & 0b0111_1000) >> 3);
             AuthoritativeAnswer = (thirdByte & 0b0000_0100) == 1;
             Truncated = (thirdByte & 0b0000_0010) == 1;
@@ -79,7 +77,7 @@ namespace cache_dns
         {
             var bytes = new List<byte>();
             bytes.AddRange(Convert.GetBytes(Id));
-            bytes.Add((byte)((QR.Code ? 1 << 7 : 0 << 7) |
+            bytes.Add((byte)((Qr.Code ? 1 << 7 : 0 << 7) |
                              (OpCode.Code << 3) |
                              (AuthoritativeAnswer ? 1 << 2 : 0 << 2) |
                              (Truncated ? 1 << 1 : 0 << 1) |

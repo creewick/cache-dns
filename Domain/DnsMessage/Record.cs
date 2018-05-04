@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Convert = cache_dns.Infrastructure.Convert;
 
-namespace cache_dns
+namespace cache_dns.Domain.DnsMessage
 {    
     [Serializable]
     public class Record
@@ -16,13 +16,13 @@ namespace cache_dns
         public readonly short DataLength;
         public readonly byte[] Data;
 
-        public Record(string name, QueryType type, QueryClass queryClass, int ttl, short length, byte[] data)
+        public Record(string name, QueryType type, QueryClass queryClass, int ttl, byte[] data)
         {
             Name = name;
             Type = type;
             QueryClass = queryClass;
             TimeToLive = ttl;
-            DataLength = length;
+            DataLength = (short)data.Length;
             Data = data;
         }        
         
@@ -58,7 +58,7 @@ namespace cache_dns
                 .Take(dataLength)
                 .ToArray();
             next = index + 11 + dataLength;
-            return new Record(name.ToString(), type, queryClass, timeToLive, dataLength, data);
+            return new Record(name.ToString(), type, queryClass, timeToLive, data);
         }
 
         public IEnumerable<byte> GetBytes()
@@ -67,8 +67,9 @@ namespace cache_dns
             foreach (var part in Name.Split('.'))
             {
                 var partAsBytes = Convert.GetBytes(part);
-                bytes.Add((byte)partAsBytes.Count());
-                bytes.AddRange(partAsBytes);
+                var list = partAsBytes.ToList();
+                bytes.Add((byte)list.Count());
+                if (list.Any()) bytes.AddRange(list);
             }
             bytes.AddRange(Convert.GetBytes(Type.Code));
             bytes.AddRange(Convert.GetBytes(QueryClass.Code));

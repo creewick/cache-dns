@@ -1,4 +1,4 @@
-﻿namespace cache_dns
+﻿namespace cache_dns.Domain.DnsMessage
 {
     public struct OpCode
     {

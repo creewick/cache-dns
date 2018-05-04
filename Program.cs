@@ -1,4 +1,6 @@
-﻿namespace cache_dns
+﻿using cache_dns.App;
+
+namespace cache_dns
 {
     public static class Program
     {

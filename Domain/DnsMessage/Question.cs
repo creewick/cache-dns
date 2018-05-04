@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using cache_dns.Domain;
 using Convert = cache_dns.Infrastructure.Convert;
 
-namespace cache_dns
+namespace cache_dns.Domain.DnsMessage
 {
     [Serializable]
     public class Question
@@ -56,8 +55,9 @@ namespace cache_dns
             foreach (var part in Name.Split('.'))
             {
                 var partAsBytes = Convert.GetBytes(part);
-                bytes.Add((byte)partAsBytes.Count());
-                bytes.AddRange(partAsBytes);
+                var list = partAsBytes.ToList();
+                bytes.Add((byte)list.Count());
+                bytes.AddRange(list);
             }
             bytes.AddRange(Convert.GetBytes(Type.Code));
             bytes.AddRange(Convert.GetBytes(QueryClass.Code));
@@ -73,5 +73,10 @@ namespace cache_dns
             Name == record.Name &&
             QueryClass.Code == record.QueryClass.Code &&
             Type.Code == record.Type.Code;
+        
+        public bool Equals(Question other) => 
+            Name == other.Name &&
+            QueryClass.Code == other.QueryClass.Code &&
+            Type.Code == other.Type.Code;
     }
 }

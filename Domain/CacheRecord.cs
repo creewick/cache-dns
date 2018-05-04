@@ -1,4 +1,5 @@
 ﻿using System;
+using cache_dns.Domain.DnsMessage;
 
 namespace cache_dns.Domain
 {
