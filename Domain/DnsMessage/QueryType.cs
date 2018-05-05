@@ -6,6 +6,7 @@ namespace cache_dns.Domain.DnsMessage
     public class QueryType
     {
         public readonly short Code;
+        // ReSharper disable once MemberCanBePrivate.Global
         public QueryType(short code) => Code = code;
 
         public static readonly QueryType A = new QueryType(1);

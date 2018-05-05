@@ -12,7 +12,8 @@ namespace cache_dns.Domain.DnsMessage
         public readonly string Name;
         public readonly QueryType Type;
         public readonly QueryClass QueryClass;
-
+        
+        // ReSharper disable once MemberCanBePrivate.Global
         public Question(string name, QueryType type, QueryClass queryClass)
         {
             Name = name;
@@ -68,11 +69,6 @@ namespace cache_dns.Domain.DnsMessage
             Name == record.Record.Name &&
             QueryClass.Code == record.Record.QueryClass.Code &&
             Type.Code == record.Record.Type.Code;
-        
-        public bool Equals(Record record) => 
-            Name == record.Name &&
-            QueryClass.Code == record.QueryClass.Code &&
-            Type.Code == record.Type.Code;
         
         public bool Equals(Question other) => 
             Name == other.Name &&

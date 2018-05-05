@@ -9,6 +9,7 @@ namespace cache_dns.Domain.DnsMessage
     [Serializable]
     public class Record
     {
+        // ReSharper disable MemberCanBePrivate.Global
         public readonly string Name;
         public readonly QueryType Type;
         public readonly QueryClass QueryClass;
@@ -51,7 +52,7 @@ namespace cache_dns.Domain.DnsMessage
                 Convert.ToShort(new[] {message[index+1], message[index+2]}));
             var queryClass = QueryClass.Parse(
                 Convert.ToShort(new[] {message[index+3], message[index+4]}));
-            var timeToLive = Convert.ToInt(new[] {message[index+5], message[index+6], message[index+7], message[index+8]});
+            var timeToLive = Convert.ToInt(new[] {message[index+5],message[index+6],message[index+7],message[index+8]});
             var dataLength = Convert.ToShort(new[] {message[index+9], message[index+10]});
             var data = message
                 .Skip(index + 11)

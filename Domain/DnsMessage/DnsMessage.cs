@@ -5,6 +5,7 @@ namespace cache_dns.Domain.DnsMessage
 {
     public class DnsMessage
     {
+        // ReSharper disable MemberCanBePrivate.Global
         public readonly short Id;
         public readonly MessageType Qr;
         public readonly OpCode OpCode;
@@ -23,13 +24,12 @@ namespace cache_dns.Domain.DnsMessage
         public readonly List<Record> Authorities = new List<Record>();
         public readonly List<Record> Additionals = new List<Record>();
 
-        public DnsMessage(short id, MessageType qr, OpCode opCode, bool authoritativeAnswer, RCode rcode,
-            List<Question> questions, List<Record> answers)
+        public DnsMessage(short id, MessageType qr, RCode rcode, List<Question> questions, List<Record> answers)
         {
             Id = id;
             Qr = qr;
-            OpCode = opCode;
-            AuthoritativeAnswer = authoritativeAnswer;
+            OpCode = OpCode.Query;
+            AuthoritativeAnswer = false;
             Truncated = false;
             RecursionDesired = true;
             RecursionAvaliable = false;
@@ -99,6 +99,4 @@ namespace cache_dns.Domain.DnsMessage
             return bytes.ToArray();
         }
     }
-    
-    
 }
